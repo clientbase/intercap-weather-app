@@ -37,6 +37,19 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
     setCurrentDayIndex(prev => Math.min(totalDays - 1, prev + 1));
   };
 
+  const goToSpecificDay = (dayIndex: number) => {
+    setCurrentDayIndex(dayIndex);
+  };
+
+  // Format date for button labels (e.g., "Sept 7")
+  const formatDateForButton = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -76,6 +89,7 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
           </TableBody>
         </Table>
         
+        {/* Navigation buttons */}
         <div className="flex justify-between items-center mt-4">
           <Button 
             onClick={goToPreviousDay} 
@@ -96,6 +110,21 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
           >
             Next Day
           </Button>
+        </div>
+
+        {/* Day selection buttons */}
+        <div className="flex flex-wrap gap-2 mt-4 justify-center">
+          {days.map((day, index) => (
+            <Button
+              key={day}
+              onClick={() => goToSpecificDay(index)}
+              variant={index === currentDayIndex ? "default" : "outline"}
+              size="sm"
+              className="min-w-[70px]"
+            >
+              {formatDateForButton(day)}
+            </Button>
+          ))}
         </div>
       </CardContent>
     </Card>

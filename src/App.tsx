@@ -17,7 +17,7 @@ function App() {
               className="h-8 w-auto"
             />
             <h1 className="text-2xl font-bold text-white">
-              Cloud 9 Forecasts
+              Cloud-9 Forecasts
             </h1>
           </div>
         </div>

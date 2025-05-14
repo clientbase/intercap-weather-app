@@ -3,7 +3,13 @@ const BASE_URL = import.meta.env.VITE_OPENWEATHER_BASE_URL;
 
 function formatWeatherData(data: WeatherResponse): WeatherData {
   return {
-    date: new Date(data.dt * 1000).toISOString(),
+    date: new Date(data.dt * 1000).toLocaleString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      hour12: true
+    }),
+    dt: data.dt,
     temp: data.main.temp,
     minTemp: data.main.temp_min,
     maxTemp: data.main.temp_max,
@@ -13,7 +19,13 @@ function formatWeatherData(data: WeatherResponse): WeatherData {
 
 function formatForecastData(data: ForecastResponse): WeatherData[] {
   return data.list.map(item => ({
-    date: new Date(item.dt * 1000).toISOString(),
+    date: new Date(item.dt * 1000).toLocaleString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      hour: 'numeric',
+      hour12: true
+    }),
+    dt: item.dt,
     temp: item.main.temp,
     minTemp: item.main.temp_min,
     maxTemp: item.main.temp_max,

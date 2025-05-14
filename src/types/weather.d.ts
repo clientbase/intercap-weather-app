@@ -1,5 +1,6 @@
 interface WeatherData {
     date: string;
+    dt: number;
     temp: number;
     minTemp: number;
     maxTemp: number;

@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 export default function ForecastCard({ data }: { data: WeatherData[] }) {
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
@@ -28,6 +35,44 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
   const currentDate = days[currentDayIndex];
   const currentDayData = groupedData[currentDate] || [];
   const totalDays = days.length;
+  
+  // Prepare chart data
+  const chartData = currentDayData.map(item => {
+    const itemDate = new Date(item.dt * 1000);
+    return {
+      time: itemDate.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      }),
+      temperature: item.temp,
+    };
+  });
+
+  // Calculate the actual min and max temperatures for the day
+  const allTemps = chartData.flatMap(item => [item.temperature]);
+  const minTempValue = Math.min(...allTemps);
+  const maxTempValue = Math.max(...allTemps);
+  
+  // Add some padding to the range (5 degrees on each side)
+  const padding = 1;
+  const yAxisMin = Math.floor(minTempValue - padding);
+  const yAxisMax = Math.ceil(maxTempValue + padding);
+
+  // Chart configuration with direct colors
+  const chartConfig = {
+    temperature: {
+      label: "Temperature",
+      color: "#3b82f6", // Blue
+    },
+    minTemp: {
+      label: "Min Temperature", 
+      color: "#06b6d4", // Cyan
+    },
+    maxTemp: {
+      label: "Max Temperature",
+      color: "#ef4444", // Red
+    },
+  } satisfies ChartConfig;
   
   const goToPreviousDay = () => {
     setCurrentDayIndex(prev => Math.max(0, prev - 1));
@@ -57,7 +102,67 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
           Forecast - {currentDate} ({currentDayIndex + 1} of {totalDays})
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
+        {/* Temperature Chart */}
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Temperature Throughout the Day</h3>
+          <ChartContainer config={chartConfig} className="h-[200px] w-full">
+            <LineChart accessibilityLayer data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="time"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis
+                domain={[yAxisMin, yAxisMax]}
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 12 }}
+                label={{ 
+                  value: 'Temperature (°C)', 
+                  angle: -90, 
+                  position: 'middle',
+                  style: { fontSize: '12px' },
+                }}
+              />
+              <ChartTooltip
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Line
+                type="monotone"
+                dataKey="temperature"
+                stroke="#3b82f6"
+                strokeWidth={3}
+                dot={{ r: 4, fill: "#3b82f6" }}
+                activeDot={{ r: 6, fill: "#3b82f6" }}
+              />
+              <Line
+                type="monotone"
+                dataKey="minTemp"
+                stroke="#06b6d4"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#06b6d4" }}
+                activeDot={{ r: 5, fill: "#06b6d4" }}
+                strokeDasharray="5 5"
+              />
+              <Line
+                type="monotone"
+                dataKey="maxTemp"
+                stroke="#ef4444"
+                strokeWidth={2}
+                dot={{ r: 3, fill: "#ef4444" }}
+                activeDot={{ r: 5, fill: "#ef4444" }}
+                strokeDasharray="5 5"
+              />
+            </LineChart>
+          </ChartContainer>
+        </div>
+
+        {/* Data Table */}
         <Table>
           <TableHeader>
             <TableRow>
@@ -90,7 +195,7 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
         </Table>
         
         {/* Navigation buttons */}
-        <div className="flex justify-between items-center mt-4">
+        <div className="flex justify-between items-center">
           <Button 
             onClick={goToPreviousDay} 
             disabled={currentDayIndex === 0}
@@ -113,7 +218,7 @@ export default function ForecastCard({ data }: { data: WeatherData[] }) {
         </div>
 
         {/* Day selection buttons */}
-        <div className="flex flex-wrap gap-2 mt-4 justify-center">
+        <div className="flex flex-wrap gap-2 justify-center">
           {days.map((day, index) => (
             <Button
               key={day}
